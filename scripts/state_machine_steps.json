@@ -1,0 +1,48 @@
+{
+    "Comment": "A description of my state machine",
+    "StartAt": "raw_to_bronze_policy",
+    "States": {
+      "raw_to_bronze_policy": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::glue:startJobRun.sync",
+        "Parameters": {
+          "JobName": "raw_to_bronze_policy"
+        },
+        "Next": "Job Complete?"
+      },
+      "Job Complete?": {
+        "Type": "Choice",
+        "Choices": [
+          {
+            "Variable": "$.JobRunState",
+            "StringEquals": "FAILED",
+            "Next": "Job Failed"
+          },
+          {
+            "Variable": "$.JobRunState",
+            "StringEquals": "SUCCEEDED",
+            "Next": "Job Succeeded"
+          }
+        ]
+      },
+      "Job Succeeded": {
+        "Comment": "Placeholder for a state which handles the success.",
+        "Type": "Pass",
+        "Next": "silver_to_gold_policy"
+      },
+      "silver_to_gold_policy": {
+        "Type": "Task",
+        "Resource": "arn:aws:states:::glue:startJobRun.sync",
+        "Parameters": {
+          "JobName": "silver_to_gold_policy"
+        },
+        "End": true
+      },
+      "Job Failed": {
+        "Comment": "Placeholder for a state which handles the failure.",
+        "Type": "Pass",
+        "End": true
+      }
+    },
+    "TimeoutSeconds": 600
+  }
